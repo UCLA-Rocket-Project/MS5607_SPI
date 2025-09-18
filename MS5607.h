@@ -1,4 +1,63 @@
 #ifndef MS5607_SPI_H_
-#define MS5067_SPI_H_
+#define MS5607_SPI_H_
+
+#include <Arduino.h>
+#include <SPI.h>
+
+/* MS5607 Command Set */
+#define MS5607_CMD_RESET              0x1E  /* Reset command */
+
+/* PROM Read Commands (Calibration data) */
+#define MS5607_CMD_READ_PROM_BASE     0xA0  /* Base address for PROM read */
+#define MS5607_CMD_READ_PROM_C1       0xA2  /* Pressure sensitivity */
+#define MS5607_CMD_READ_PROM_C2       0xA4  /* Pressure offset */
+#define MS5607_CMD_READ_PROM_C3       0xA6  /* Temperature coefficient of pressure sensitivity */
+#define MS5607_CMD_READ_PROM_C4       0xA8  /* Temperature coefficient of pressure offset */
+#define MS5607_CMD_READ_PROM_C5       0xAA  /* Reference temperature */
+#define MS5607_CMD_READ_PROM_C6       0xAC  /* Temperature coefficient of the temperature */
+#define MS5607_CMD_READ_PROM_CRC      0xAE  /* CRC check */
+#define NUM_COEFFS                    6
+
+/* ADC Read */
+#define MS5607_CMD_ADC_READ           0x00  /* Read ADC result */
+
+/* Pressure Conversion Commands (D1) */
+#define MS5607_CMD_CONVERT_D1_OSR256  0x40
+#define MS5607_CMD_CONVERT_D1_OSR512  0x42
+#define MS5607_CMD_CONVERT_D1_OSR1024 0x44
+#define MS5607_CMD_CONVERT_D1_OSR2048 0x46
+#define MS5607_CMD_CONVERT_D1_OSR4096 0x48
+
+/* Temperature Conversion Commands (D2) */
+#define MS5607_CMD_CONVERT_D2_OSR256  0x50
+#define MS5607_CMD_CONVERT_D2_OSR512  0x52
+#define MS5607_CMD_CONVERT_D2_OSR1024 0x54
+#define MS5607_CMD_CONVERT_D2_OSR2048 0x56
+#define MS5607_CMD_CONVERT_D2_OSR4096 0x58
+
+
+class MS5607 
+{
+public:
+    MS5607(SPIClass *spi_bus, uint8_t cs_pin);
+
+    bool initialize();
+
+private:
+    SPIClass *_spi;
+
+    uint8_t _CS_pin;
+
+    // calibration coeffs
+    uint16_t _c1;
+    uint16_t _c2;
+    uint16_t _c3;
+    uint16_t _c4;
+    uint16_t _c5;
+    uint16_t _c6;
+
+    void _read_calibration_coefficients();
+    bool _validate_crc4(uint16_t coeffs[NUM_COEFFS + 2]);
+};
 
 #endif // MS5607_SPI_H_
