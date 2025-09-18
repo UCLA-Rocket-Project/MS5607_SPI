@@ -86,6 +86,7 @@ private:
     bool _validate_crc4(uint16_t coeffs[NUM_COEFFS + 2]);
     uint32_t _read_adc();
     void _setup_pressure_calculation();
+    bool _test_spi();
 };
 
 #endif // MS5607_SPI_H_

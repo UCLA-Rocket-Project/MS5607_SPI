@@ -2,8 +2,6 @@
 
 #include <Arduino.h>
 #include <SPI.h>
-#include <assert.h>
-#include <esp32-hal-gpio.h>
 
 // public methods
 MS5607::MS5607(SPIClass *spi_bus, uint8_t cs_pin, OSR_t osr_rate)
@@ -20,10 +18,14 @@ bool MS5607::initialize()
     _spi->begin();
     _spi->transfer(MS5607_CMD_RESET);
     delay(3); // ref: page 10 of datasheet says to wait 2.8ms after sending reset sequence
+
+    if (!_test_spi()) return false;
+
     _spi->endTransaction();
     digitalWrite(_CS_pin, HIGH);
 
     _read_calibration_coefficients();
+    return true;
 }
 
 void MS5607::set_osr_rate(OSR_t osr_rate) 
@@ -133,6 +135,8 @@ uint32_t MS5607::read_raw_pressure(bool &reading_is_valid)
 /**
  * Calculate the actual pressure reading
  * ref: page 8 of datasheet
+ * 
+ * @return: pressure with 0.01 mbar resolution
  */
 int32_t MS5607::calculate_pressure(uint32_t raw_pressure)
 {
@@ -267,4 +271,15 @@ void MS5607::_setup_pressure_calculation()
 
     _last_calculated_offset = _c2 << 17 + (_c4 * _dT) >> 6;
     _last_calculated_actual_sensitivity = _c1 << 16 + (_c3 * _dT) >> 7;
+}
+
+/**
+ * test the SPI connection and expect a 0 value, since no conversion has been initiated yet
+ * 
+ * @note: assumes that the CS pin is already held low and that the SPI bus is already in a transaction
+ */
+bool MS5607::_test_spi()
+{
+    uint32_t blank_adc_val = _read_adc();
+    return blank_adc_val == 0;
 }
