@@ -93,7 +93,7 @@ int32_t MS5607::calculate_temperature(uint32_t raw_temperature)
 {
     // calculate preliminary values first, if invalid, discard these values
     int32_t dT = raw_temperature - (_c5 << 8);
-    int32_t calculated_temp = 2000 + dT * _c6 >> 23;
+    int32_t calculated_temp = 2000 + (dT * _c6) >> 23;
 
     // check that the calculated temperature is within range
     if (!(-40 <= calculated_temp && calculated_temp <= 85)) {
@@ -140,7 +140,7 @@ int32_t MS5607::calculate_pressure(uint32_t raw_pressure)
         return -1;
     }
 
-    int32_t calculated_pressure = (raw_pressure * (_last_calculated_actual_sensitivity >> 21) - _last_calculated_offset) >> 15;
+    int32_t calculated_pressure = (((raw_pressure * _last_calculated_actual_sensitivity) >> 21) - _last_calculated_offset) >> 15;
     
     // check that the calculated pressure is within range
     if (!(10 <= calculated_pressure && calculated_pressure <= 1200)) {
