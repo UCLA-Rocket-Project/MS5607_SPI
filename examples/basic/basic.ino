@@ -3,6 +3,7 @@
 #include <MS5607.h>
 #include <HardwareSerial.h>
 
+// NOTE: edit SPI pins based on wiring
 #define CLK 10
 #define MISO 10
 #define MOSI 10
