@@ -5,10 +5,11 @@
 #include <assert.h>
 
 // public methods
-MS5607::MS5607(SPIClass *spi_bus, uint8_t cs_pin)
+MS5607::MS5607(SPIClass *spi_bus, uint8_t cs_pin, OSR_t osr_rate)
     :_spi(spi_bus), _CS_pin(cs_pin)
 {  
     pinMode(_CS_pin, INPUT);
+    set_osr_rate(osr_rate);
 }
 
 bool MS5607::initialize() 
@@ -21,6 +22,42 @@ bool MS5607::initialize()
     digitalWrite(_CS_pin, HIGH);
 
     _read_calibration_coefficients();
+}
+
+void MS5607::set_osr_rate(OSR_t osr_rate) 
+{
+    switch(osr_rate) {
+        case OSR256:
+            _pressure_command = MS5607_CMD_CONVERT_D1_OSR256;
+            _temperature_command = MS5607_CMD_CONVERT_D2_OSR256;
+            _adc_conversion_time_micro = 600;
+            break;
+        case OSR512:
+            _pressure_command = MS5607_CMD_CONVERT_D1_OSR512;
+            _temperature_command = MS5607_CMD_CONVERT_D2_OSR512;
+            _adc_conversion_time_micro = 1170;
+            break;
+        case OSR1024:
+            _pressure_command = MS5607_CMD_CONVERT_D1_OSR1024;
+            _temperature_command = MS5607_CMD_CONVERT_D2_OSR1024;
+            _adc_conversion_time_micro = 2280;
+            break;
+        case OSR2048:
+            _pressure_command = MS5607_CMD_CONVERT_D1_OSR2048;
+            _temperature_command = MS5607_CMD_CONVERT_D2_OSR2048;
+            _adc_conversion_time_micro = 4540;
+            break;
+        case OSR4096:
+            _pressure_command = MS5607_CMD_CONVERT_D1_OSR4096;
+            _temperature_command = MS5607_CMD_CONVERT_D2_OSR4096;
+            _adc_conversion_time_micro = 9040;
+            break;
+        default:
+            _pressure_command = MS5607_CMD_CONVERT_D1_OSR256;
+            _temperature_command = MS5607_CMD_CONVERT_D2_OSR256;
+            _adc_conversion_time_micro = 600;
+            break;
+    }
 }
 
 

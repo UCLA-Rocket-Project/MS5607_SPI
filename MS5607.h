@@ -39,9 +39,18 @@
 class MS5607 
 {
 public:
-    MS5607(SPIClass *spi_bus, uint8_t cs_pin);
+    typedef enum OSR_Rate {
+        OSR256,
+        OSR512,
+        OSR1024,
+        OSR2048,
+        OSR4096,
+    } OSR_t;
+
+    MS5607(SPIClass *spi_bus, uint8_t cs_pin, OSR_t osr_rate = OSR256);
 
     bool initialize();
+    void set_osr_rate(OSR_t osr_rate);
 
 private:
     SPIClass *_spi;
@@ -55,6 +64,11 @@ private:
     uint16_t _c4;
     uint16_t _c5;
     uint16_t _c6;
+
+    // OSR commands -- set based on the OSR rate
+    uint16_t _pressure_command;
+    uint16_t _temperature_command;
+    long _adc_conversion_time_micro;
 
     void _read_calibration_coefficients();
     bool _validate_crc4(uint16_t coeffs[NUM_COEFFS + 2]);
