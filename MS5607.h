@@ -58,6 +58,7 @@ public:
 
 private:
     SPIClass *_spi;
+    SPISettings _spi_settings;
 
     uint8_t _CS_pin;
 
