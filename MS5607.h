@@ -51,6 +51,8 @@ public:
 
     bool initialize();
     void set_osr_rate(OSR_t osr_rate);
+    uint32_t read_raw_temperature(bool &reading_is_valid);
+    uint32_t read_raw_pressure(bool &reading_is_valid);
 
 private:
     SPIClass *_spi;
@@ -70,8 +72,14 @@ private:
     uint16_t _temperature_command;
     long _adc_conversion_time_micro;
 
+    // used to record the last recorded temp and pressure, for calculation purposes
+    bool _has_read_temp_before; // need this because the pressure calculation depends on temperature calculation
+    uint32_t _last_calculated_temp;
+    uint32_t _last_calculated_pressure;
+
     void _read_calibration_coefficients();
     bool _validate_crc4(uint16_t coeffs[NUM_COEFFS + 2]);
+    uint32_t _read_adc();
 };
 
 #endif // MS5607_SPI_H_

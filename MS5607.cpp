@@ -6,7 +6,7 @@
 
 // public methods
 MS5607::MS5607(SPIClass *spi_bus, uint8_t cs_pin, OSR_t osr_rate)
-    :_spi(spi_bus), _CS_pin(cs_pin)
+    :_spi(spi_bus), _CS_pin(cs_pin), _has_read_temp_before(false)
 {  
     pinMode(_CS_pin, INPUT);
     set_osr_rate(osr_rate);
@@ -60,6 +60,49 @@ void MS5607::set_osr_rate(OSR_t osr_rate)
     }
 }
 
+/**
+ * Get the uncompensated temperature reading
+ * 
+ * @param reading_is_valid: flag to check if the returned reading is valid. ignore the reading if the reading is invalid
+ */
+uint32_t MS5607::read_raw_temperature(bool &reading_is_valid) 
+{
+    digitalWrite(_CS_pin, LOW);
+    _spi->begin();
+    _spi->transfer(_temperature_command);
+    delayMicroseconds(_adc_conversion_time_micro);
+
+    uint32_t raw_result = _read_adc();
+    _spi->endTransaction();
+    digitalWrite(_CS_pin, HIGH);
+
+    reading_is_valid = raw_result != 0;
+
+    if (reading_is_valid) _has_read_temp_before = true;
+
+    return raw_result;
+}
+
+/**
+ * Get the uncompensated pressure reading
+ * 
+ * @param reading_is_valid: flag to check if the returned reading is valid. ignore the reading if the reading is invalid
+ */
+uint32_t MS5607::read_raw_pressure(bool &reading_is_valid) 
+{
+    digitalWrite(_CS_pin, LOW);
+    _spi->begin();
+    _spi->transfer(_pressure_command);
+    delayMicroseconds(_adc_conversion_time_micro);
+
+    uint32_t raw_result = _read_adc();
+    _spi->endTransaction();
+    digitalWrite(_CS_pin, HIGH);
+
+    reading_is_valid = raw_result != 0;
+
+    return raw_result;
+}
 
 // private methods
 
@@ -151,4 +194,19 @@ bool MS5607::_validate_crc4(uint16_t coeffs[NUM_COEFFS + 2])
 
     rem = (rem >> 12) & 0x000F;
     return !((rem ^ 0x00) ^ crc);
+}
+
+/**
+ * Read the 24-bit ADC value
+ * 
+ * @note: assumes that the CS pin is already held low and that the SPI bus is already in a transaction
+ */
+uint32_t MS5607::_read_adc() 
+{
+    _spi->transfer(MS5607_CMD_ADC_READ);
+    uint8_t first_byte = _spi->transfer(0);
+    uint8_t second_byte = _spi->transfer(0);
+    uint8_t third_byte = _spi->transfer(0);
+
+    return (first_byte << 16 | second_byte << 8 | third_byte) & 0x00FFFFFF;
 }
