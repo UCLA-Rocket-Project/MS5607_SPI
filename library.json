@@ -1,0 +1,23 @@
+{
+  "name": "MS5607_SPI",
+  "keywords": "MS5607,GY-63,GY63,temperature,pressure",
+  "description": "Arduino library (SPI) for MS5607 temperature and pressure sensor",
+  "authors":
+  [
+    {
+      "name": "SleepyWoodpecker",
+      "email": "shawnweichew@gmail.com",
+      "maintainer": true
+    }
+  ],
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/UCLA-Rocket-Project/MS5067_SPI"
+  },
+  "version": "0.0.1",
+  "license": "MIT",
+  "frameworks": "*",
+  "platforms": "*",
+  "headers": "MS5607.h"
+}
