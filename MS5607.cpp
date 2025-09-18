@@ -3,10 +3,12 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <assert.h>
+#include <esp32-hal-gpio.h>
 
 // public methods
 MS5607::MS5607(SPIClass *spi_bus, uint8_t cs_pin, OSR_t osr_rate)
-    :_spi(spi_bus), _CS_pin(cs_pin), _has_read_temp_before(false)
+    :_spi(spi_bus), _CS_pin(cs_pin), 
+    _last_calculated_temperature(-1), _dT(-1), _last_calculated_actual_sensitivity(-1), _last_calculated_offset(-1)
 {  
     pinMode(_CS_pin, INPUT);
     set_osr_rate(osr_rate);
@@ -78,9 +80,33 @@ uint32_t MS5607::read_raw_temperature(bool &reading_is_valid)
 
     reading_is_valid = raw_result != 0;
 
-    if (reading_is_valid) _has_read_temp_before = true;
-
     return raw_result;
+}
+
+/**
+ * Calculate the actual temperature reading
+ * ref: page 8 of datasheet
+ * 
+ * @return: temp with 0.01 C resolution
+ */
+int32_t MS5607::calculate_temperature(uint32_t raw_temperature)
+{
+    // calculate preliminary values first, if invalid, discard these values
+    int32_t dT = raw_temperature - (_c5 << 8);
+    int32_t calculated_temp = 2000 + dT * _c6 >> 23;
+
+    // check that the calculated temperature is within range
+    if (!(-40 <= calculated_temp && calculated_temp <= 85)) {
+        return -1;
+    }
+    
+    _dT = dT;
+    _last_calculated_temperature = calculated_temp; 
+
+    // always update the pressure calibration factors after reading temperature
+    _setup_pressure_calculation();
+
+    return calculated_temp;
 }
 
 /**
@@ -102,6 +128,26 @@ uint32_t MS5607::read_raw_pressure(bool &reading_is_valid)
     reading_is_valid = raw_result != 0;
 
     return raw_result;
+}
+
+/**
+ * Calculate the actual pressure reading
+ * ref: page 8 of datasheet
+ */
+int32_t MS5607::calculate_pressure(uint32_t raw_pressure)
+{
+    if (_last_calculated_offset == -1 || _last_calculated_actual_sensitivity == -1) {
+        return -1;
+    }
+
+    int32_t calculated_pressure = (raw_pressure * (_last_calculated_actual_sensitivity >> 21) - _last_calculated_offset) >> 15;
+    
+    // check that the calculated pressure is within range
+    if (!(10 <= calculated_pressure && calculated_pressure <= 1200)) {
+        return -1;
+    }
+
+    return calculated_pressure;
 }
 
 // private methods
@@ -209,4 +255,16 @@ uint32_t MS5607::_read_adc()
     uint8_t third_byte = _spi->transfer(0);
 
     return (first_byte << 16 | second_byte << 8 | third_byte) & 0x00FFFFFF;
+}
+
+void MS5607::_setup_pressure_calculation()
+{
+    // these calibration values depend on dT and the last calculated temperature
+    // return invalid value if dT and last calculated temperature do not yet exist
+    if (_dT == -1 || _last_calculated_temperature == -1) {
+        return;
+    }
+
+    _last_calculated_offset = _c2 << 17 + (_c4 * _dT) >> 6;
+    _last_calculated_actual_sensitivity = _c1 << 16 + (_c3 * _dT) >> 7;
 }
