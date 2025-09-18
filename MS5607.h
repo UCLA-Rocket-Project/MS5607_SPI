@@ -58,6 +58,7 @@ public:
 
 private:
     SPIClass *_spi;
+    SPISettings _spi_settings;
 
     uint8_t _CS_pin;
 
@@ -87,6 +88,8 @@ private:
     uint32_t _read_adc();
     void _setup_pressure_calculation();
     bool _test_spi();
+
+    uint16_t _read_prom(uint8_t command);
 };
 
 #endif // MS5607_SPI_H_
