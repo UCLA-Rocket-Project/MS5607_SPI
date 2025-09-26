@@ -8,7 +8,8 @@ MS5607::MS5607(SPIClass *spi_bus, uint8_t cs_pin, OSR_t osr_rate)
     :_spi(spi_bus), _CS_pin(cs_pin), _spi_settings(20000000, SPI_MSBFIRST, SPI_MODE0),
     _last_calculated_temperature(-1), _dT(-1), _last_calculated_actual_sensitivity(-1), _last_calculated_offset(-1)
 {  
-    pinMode(_CS_pin, INPUT);
+    pinMode(_CS_pin, OUTPUT);
+    digitalWrite(_CS_pin, HIGH);
     set_osr_rate(osr_rate);
 }
 
