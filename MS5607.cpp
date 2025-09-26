@@ -14,15 +14,10 @@ MS5607::MS5607(SPIClass *spi_bus, uint8_t cs_pin, OSR_t osr_rate)
 
 bool MS5607::initialize() 
 {
-    _spi->beginTransaction(_spi_settings);
-    digitalWrite(_CS_pin, LOW);
-    _spi->transfer(MS5607_CMD_RESET);
+    _send_command(MS5607_CMD_RESET);
     delay(3); // ref: page 10 of datasheet says to wait 2.8ms after sending reset sequence
 
     if (!_test_spi()) return false;
-
-    digitalWrite(_CS_pin, HIGH);
-    _spi->endTransaction();
 
     _read_calibration_coefficients();
     return true;
