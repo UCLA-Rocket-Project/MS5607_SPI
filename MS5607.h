@@ -90,6 +90,7 @@ private:
     bool _test_spi();
 
     uint16_t _read_prom(uint8_t command);
+    void _send_command(uint8_t command);
 };
 
 #endif // MS5607_SPI_H_

@@ -71,14 +71,11 @@ void MS5607::set_osr_rate(OSR_t osr_rate)
  */
 uint32_t MS5607::read_raw_temperature(bool &reading_is_valid) 
 {
-    _spi->beginTransaction(_spi_settings);
-    digitalWrite(_CS_pin, LOW);
-    _spi->transfer(_temperature_command);
+   _send_command(_temperature_command);
+
     delayMicroseconds(_adc_conversion_time_micro);
 
     uint32_t raw_result = _read_adc();
-    digitalWrite(_CS_pin, HIGH);
-    _spi->endTransaction();
 
     reading_is_valid = raw_result != 0;
 
@@ -118,14 +115,11 @@ int32_t MS5607::calculate_temperature(uint32_t raw_temperature)
  */
 uint32_t MS5607::read_raw_pressure(bool &reading_is_valid) 
 {
-    _spi->beginTransaction(_spi_settings);
-    digitalWrite(_CS_pin, LOW);
-    _spi->transfer(_pressure_command);
+    _send_command(_pressure_command);
+    
     delayMicroseconds(_adc_conversion_time_micro);
 
     uint32_t raw_result = _read_adc();
-    digitalWrite(_CS_pin, HIGH);
-    _spi->endTransaction();
 
     reading_is_valid = raw_result != 0;
 
@@ -162,44 +156,16 @@ int32_t MS5607::calculate_pressure(uint32_t raw_pressure)
  */
 void MS5607::_read_calibration_coefficients()
 {
-    _spi->beginTransaction(_spi_settings);
-    digitalWrite(_CS_pin, LOW);
-
-    _spi->transfer(MS5607_CMD_READ_PROM_C1);
-    _c1 = _spi->transfer16(0);
-    delay(1);
-
-    _spi->transfer(MS5607_CMD_READ_PROM_C2);
-    _c2 = _spi->transfer16(0);
-    delay(1);
-
-    _spi->transfer(MS5607_CMD_READ_PROM_C3);
-    _c3 = _spi->transfer16(0);
-    delay(1);
-
-    _spi->transfer(MS5607_CMD_READ_PROM_C4);
-    _c4 = _spi->transfer16(0);
-    delay(1);
-
-    _spi->transfer(MS5607_CMD_READ_PROM_C5);
-    _c5 = _spi->transfer16(0);
-    delay(1);
-
-    _spi->transfer(MS5607_CMD_READ_PROM_C6);
-    _c1 = _spi->transfer16(0);
-    delay(1);
+   _c1 = _read_prom(MS5607_CMD_READ_PROM_C1);
+   _c2 = _read_prom(MS5607_CMD_READ_PROM_C2);
+   _c3 = _read_prom(MS5607_CMD_READ_PROM_C3);
+   _c4 = _read_prom(MS5607_CMD_READ_PROM_C4);
+   _c5 = _read_prom(MS5607_CMD_READ_PROM_C5);
+   _c6 = _read_prom(MS5607_CMD_READ_PROM_C6);
 
     // read supplementary values to calculate CRC
-    _spi->transfer(MS5607_CMD_READ_PROM_BASE);    
-    uint16_t reserved_data = _spi->transfer16(0);
-    delay(1);
-    
-    _spi->transfer(MS5607_CMD_READ_PROM_CRC);
-    uint16_t crc = _spi->transfer16(0);
-    delay(1);
-
-    digitalWrite(_CS_pin, HIGH);
-    _spi->endTransaction();
+    uint16_t reserved_data = _read_prom(MS5607_CMD_READ_PROM_BASE);
+    uint16_t crc = _read_prom(MS5607_CMD_READ_PROM_CRC);
 
     uint16_t coeffs[NUM_COEFFS + 2] = {
         reserved_data, 
@@ -249,14 +215,19 @@ bool MS5607::_validate_crc4(uint16_t coeffs[NUM_COEFFS + 2])
 /**
  * Read the 24-bit ADC value
  * 
- * @note: assumes that the CS pin is already held low and that the SPI bus is already in a transaction
  */
 uint32_t MS5607::_read_adc() 
 {
+    digitalWrite(_CS_pin, LOW);
+    _spi->beginTransaction(_spi_settings);
+
     _spi->transfer(MS5607_CMD_ADC_READ);
     uint8_t first_byte = _spi->transfer(0);
     uint8_t second_byte = _spi->transfer(0);
     uint8_t third_byte = _spi->transfer(0);
+    
+    _spi->endTransaction();
+    digitalWrite(_CS_pin, HIGH);
 
     return (first_byte << 16 | second_byte << 8 | third_byte) & 0x00FFFFFF;
 }
@@ -282,4 +253,26 @@ bool MS5607::_test_spi()
 {
     uint32_t blank_adc_val = _read_adc();
     return blank_adc_val == 0;
+}
+
+/**
+ * send a command and expect a 16 bit result
+ */
+uint16_t MS5607::_read_prom(uint8_t command) {
+    digitalWrite(_CS_pin, LOW);
+    _spi->beginTransaction(_spi_settings);
+    _spi->transfer(command);
+    uint16_t result = _spi->transfer16(0);
+    _spi->endTransaction();
+    digitalWrite(_CS_pin, HIGH);
+
+    return result;
+}
+
+void MS5607::_send_command(uint8_t command) {
+    digitalWrite(_CS_pin, LOW);
+    _spi->beginTransaction(_spi_settings);
+    _spi->transfer(command);
+    _spi->endTransaction();
+    digitalWrite(_CS_pin, HIGH);
 }
