@@ -144,6 +144,17 @@ int32_t MS5607::calculate_pressure(uint32_t raw_pressure)
     return calculated_pressure;
 }
 
+/**
+ * Calculate the altitude based on current temperature and pressure readings
+ * 
+ * @param t current temperature reading
+ * @param p current pressure reading
+ * @return altitude with 5 m resolution(?)
+ */
+float MS5607::get_altitude(uint32_t t, uint32_t p){
+    return 153.84615*(pow(p,0.19) - 1)*(t+273.15);
+}
+
 // private methods
 
 /**
