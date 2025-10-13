@@ -4,23 +4,29 @@
 #include <HardwareSerial.h>
 
 // NOTE: edit SPI pins based on wiring
-#define CLK 10
-#define MISO 10
-#define MOSI 10
-#define CS 10
+#define CLK 39
+#define MISO 37
+#define MOSI 38
+#define CS 9
 
 SPIClass spi_bus;
-MS5607 ms5607(&spi_bus, CS, MS5607::OSR_Rate::OSR512);
+MS5607 ms5607(&spi_bus, CS, MS5607::OSR_Rate::OSR1024);
+
+int err_ent = 0;
 
 void setup() {
     Serial.begin(115200);
-    delay(1000);
+    delay(3000);
 
     spi_bus.begin(CLK, MISO, MOSI, -1);
-    bool ms5607_initialization_result = ms5607.initialize();
+    while (!ms5607.initialize()) {
+      Serial.println("ms5607 not initialized, retrying...");
+      delay(1000);
+    }
+
+    ms5607.dump_calibration_coeffs();
     
     // put in indefinite spin loop if initialization does not work
-    while (!ms5607_initialization_result) {}
 }
 
 void loop() {

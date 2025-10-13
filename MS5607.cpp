@@ -135,7 +135,6 @@ int32_t MS5607::calculate_pressure(uint32_t raw_pressure)
     }
 
     float calculated_pressure = (raw_pressure * _last_calculated_actual_sensitivity * 4.768317582E-7 - _last_calculated_offset) / (1 << 15);
-
     // check that the calculated pressure is within range
     if (!(1000 <= calculated_pressure && calculated_pressure <= 120000)) {
         return -1;
@@ -154,6 +153,11 @@ int32_t MS5607::calculate_pressure(uint32_t raw_pressure)
 float MS5607::get_altitude(uint32_t t, uint32_t p){
     return (153.84615*(pow(p,0.19) - 1)*(t+273.15)) / 1e3;
 }
+
+void MS5607::dump_calibration_coeffs() {
+    Serial.printf("c1: %.5f, c2: %.5f, c3: %.5f, c4: %.5f, c5: %.5f, c6: %.5f\n", _c1, _c2, _c3, _c4, _c5, _c6);
+};
+
 
 // private methods
 
