@@ -21,7 +21,9 @@ bool MS5607::initialize()
     delay(3); // ref: page 10 of datasheet says to wait 2.8ms after sending reset sequence
 
     _read_calibration_coefficients();
-    return true;
+
+    // check that all calibration coefficients are correct
+    return _c1 >= 0 && _c2 >= 0 && _c3 >= 0 && _c4 >= 0 && _c5 >= 0 && _c6 >= 0
 }
 
 void MS5607::set_osr_rate(OSR_t osr_rate) 

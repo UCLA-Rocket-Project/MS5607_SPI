@@ -65,12 +65,12 @@ private:
     uint8_t _CS_pin;
 
     // calibration coeffs
-    float _c1 {0};
-    float _c2 {0};
-    float _c3 {0};
-    float _c4 {0};
-    float _c5 {0};
-    float _c6 {0};
+    float _c1 {-1};
+    float _c2 {-1};
+    float _c3 {-1};
+    float _c4 {-1};
+    float _c5 {-1};
+    float _c6 {-1};
 
     // OSR commands -- set based on the OSR rate
     uint16_t _pressure_command;
