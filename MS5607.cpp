@@ -23,7 +23,7 @@ bool MS5607::initialize()
     _read_calibration_coefficients();
 
     // check that all calibration coefficients are correct
-    return _c1 >= 0 && _c2 >= 0 && _c3 >= 0 && _c4 >= 0 && _c5 >= 0 && _c6 >= 0
+    return _c1 >= 0 && _c2 >= 0 && _c3 >= 0 && _c4 >= 0 && _c5 >= 0 && _c6 >= 0;
 }
 
 void MS5607::set_osr_rate(OSR_t osr_rate) 
