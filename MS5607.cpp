@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include <SPI.h>
 
+#include <cmath>
+
 // public methods
 MS5607::MS5607(SPIClass *spi_bus, uint8_t cs_pin, OSR_t osr_rate)
     :_spi(spi_bus), _CS_pin(cs_pin), _spi_settings(10000000, SPI_MSBFIRST, SPI_MODE0),
@@ -183,7 +185,7 @@ float MS5607::get_altitude_2(uint32_t p_pa){
     // molar mass of earth's air
     float M = 0.0289644;
 
-    return hb + (tb / lb) * ((p_pa / pb) ** ((-R * lb) / (g * M)) - 1);
+    return hb + (tb / lb) * pow((p_pa / pb), (((-R * lb) / (g * M)) - 1));
 }
 
 void MS5607::dump_calibration_coeffs() {
