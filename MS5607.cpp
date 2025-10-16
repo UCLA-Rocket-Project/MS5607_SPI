@@ -160,6 +160,35 @@ void MS5607::dump_calibration_coeffs() {
     Serial.printf("c1: %.5f, c2: %.5f, c3: %.5f, c4: %.5f, c5: %.5f, c6: %.5f\n", _c1, _c2, _c3, _c4, _c5, _c6);
 };
 
+/**
+ * Calculate the altitude based on current temperature and pressure readings -- SECOND FORMULA
+ * See https://www.mide.com/air-pressure-at-altitude-calculator
+ * 
+ * @param p_pa current pressure reading in pascals
+ * @return altitude with 5 m resolution(?)
+ */
+float MS5607::get_altitude_2(uint32_t p_pa){
+    // height at bottom of atmospheric layer (m)
+    uint32_t hb = 0
+    // static pressure (pa)
+    uint32_t pb = 101325
+    // standard temperature at sea level (K)
+    float tb = 15 + 273.15
+    // standard temperature lapse rate (K / m)
+    float lb = -0.0065
+    // gas constant
+    float R = 8.31432
+    // gravitational acceleration constant
+    float g = 9.80665
+    // molar mass of earth's air
+    float M = 0.0289644
+
+    return hb + (tb / lb) * ((p_pa / pb) ** ((-R * lb) / (g * M)) - 1);
+}
+
+void MS5607::dump_calibration_coeffs() {
+    Serial.printf("c1: %.5f, c2: %.5f, c3: %.5f, c4: %.5f, c5: %.5f, c6: %.5f\n", _c1, _c2, _c3, _c4, _c5, _c6);
+};
 
 // private methods
 
