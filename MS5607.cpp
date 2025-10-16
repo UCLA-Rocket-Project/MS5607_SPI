@@ -169,19 +169,19 @@ void MS5607::dump_calibration_coeffs() {
  */
 float MS5607::get_altitude_2(uint32_t p_pa){
     // height at bottom of atmospheric layer (m)
-    uint32_t hb = 0
+    uint32_t hb = 0;
     // static pressure (pa)
-    uint32_t pb = 101325
+    uint32_t pb = 101325;
     // standard temperature at sea level (K)
-    float tb = 15 + 273.15
+    float tb = 15 + 273.15;
     // standard temperature lapse rate (K / m)
-    float lb = -0.0065
+    float lb = -0.0065;
     // gas constant
-    float R = 8.31432
+    float R = 8.31432;
     // gravitational acceleration constant
-    float g = 9.80665
+    float g = 9.80665;
     // molar mass of earth's air
-    float M = 0.0289644
+    float M = 0.0289644;
 
     return hb + (tb / lb) * ((p_pa / pb) ** ((-R * lb) / (g * M)) - 1);
 }
