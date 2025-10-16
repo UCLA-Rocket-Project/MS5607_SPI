@@ -158,10 +158,6 @@ float MS5607::get_altitude(uint32_t t, uint32_t p){
     return (153.84615*(pow(p,0.19) - 1)*(t+273.15)) / 1e3;
 }
 
-void MS5607::dump_calibration_coeffs() {
-    Serial.printf("c1: %.5f, c2: %.5f, c3: %.5f, c4: %.5f, c5: %.5f, c6: %.5f\n", _c1, _c2, _c3, _c4, _c5, _c6);
-};
-
 /**
  * Calculate the altitude based on current temperature and pressure readings -- SECOND FORMULA
  * See https://www.mide.com/air-pressure-at-altitude-calculator
