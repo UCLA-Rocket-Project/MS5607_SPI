@@ -54,6 +54,7 @@ class MS5607 {
     uint32_t read_raw_pressure(bool &reading_is_valid);
     int32_t calculate_pressure(uint32_t raw_pressure);
     float get_altitude(uint32_t t, uint32_t p);
+    float get_altitude_2(uint32_t p_pa);
     void dump_calibration_coeffs();
 
   private:

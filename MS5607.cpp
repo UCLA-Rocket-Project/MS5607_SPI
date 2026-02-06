@@ -3,6 +3,8 @@
 #include <Arduino.h>
 #include <SPI.h>
 
+#include <cmath>
+
 // public methods
 MS5607::MS5607(SPIClass *spi_bus, uint8_t cs_pin, OSR_t osr_rate)
     : _spi(spi_bus), _CS_pin(cs_pin), _spi_settings(10000000, SPI_MSBFIRST, SPI_MODE0),
@@ -24,7 +26,7 @@ bool MS5607::begin() {
     _read_calibration_coefficients();
 
     // check that all calibration coefficients are correct
-    return _c1 >= 0 && _c2 >= 0 && _c3 >= 0 && _c4 >= 0 && _c5 >= 0 && _c6 >= 0
+    return _c1 >= 0 && _c2 >= 0 && _c3 >= 0 && _c4 >= 0 && _c5 >= 0 && _c6 >= 0;
 }
 
 void MS5607::set_osr_rate(OSR_t osr_rate) {
@@ -155,6 +157,32 @@ int32_t MS5607::calculate_pressure(uint32_t raw_pressure) {
  */
 float MS5607::get_altitude(uint32_t t, uint32_t p) {
     return (153.84615 * (pow(p, 0.19) - 1) * (t + 273.15)) / 1e3;
+}
+
+/**
+ * Calculate the altitude based on current temperature and pressure readings -- SECOND FORMULA
+ * See https://www.mide.com/air-pressure-at-altitude-calculator
+ * 
+ * @param p_pa current pressure reading in pascals
+ * @return altitude with 5 m resolution(?)
+ */
+float MS5607::get_altitude_2(uint32_t p_pa){
+    // height at bottom of atmospheric layer (m)
+    uint32_t hb = 0;
+    // static pressure (pa)
+    uint32_t pb = 101325;
+    // standard temperature at sea level (K)
+    float tb = 15 + 273.15;
+    // standard temperature lapse rate (K / m)
+    float lb = -0.0065;
+    // gas constant
+    float R = 8.31432;
+    // gravitational acceleration constant
+    float g = 9.80665;
+    // molar mass of earth's air
+    float M = 0.0289644;
+
+    return hb + (tb / lb) * pow((p_pa / pb), (((-R * lb) / (g * M)) - 1));
 }
 
 void MS5607::dump_calibration_coeffs() {

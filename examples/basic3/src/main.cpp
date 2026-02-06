@@ -62,11 +62,16 @@ void loop() {
 
     //calculate altitude
     float altitude_m = ms5607.get_altitude(temperature_c, pressure_mbar);
+    
+    //calculate altitude again
+    float pressure_pa = pressure_mbar * 100;
+    float altitude_m2 = ms5607.get_altitude_2(pressure_pa);
 
     // Format into Arduino string
     String output = "Temperature: " + String(temperature_c, 2) + " °C, "
                     "Pressure: " + String(pressure_mbar, 2) + " mbar, "
-                    "Altitude: " + String(altitude_m, 4) + " m";
+                    "Altitude: " + String(altitude_m, 4) + " m, "
+                    "Altitude2: " + String(altitude_m2, 4) + " m";
 
     Serial.println(output);
 
